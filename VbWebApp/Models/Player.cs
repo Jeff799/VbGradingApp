@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.EntityFrameworkCore;
 
-
+namespace Models;
 public class Player
 {
 
-  [Key]
+  [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
   public int PlayerID { get; set; }
 
   [Required, StringLength(50)]
@@ -26,15 +26,14 @@ public class Player
   {
     Outside = 1,
     Setter = 2,
-    Middle = 3,
-    Libero = 4,
-    Opposite = 5
+    Middle = 4,
+    Libero = 8,
+    Opposite = 16
 
   }
 
-  public Position Postiions { get; set; }
+  public Position Positions { get; set; }
 
   public virtual ICollection<Stat> Stats { get; set; }
 
-  public virtual Login Login { get; set; }
 }

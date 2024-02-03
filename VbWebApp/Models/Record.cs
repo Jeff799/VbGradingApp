@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
+namespace Models;
 public class Record
 {
   [Key]
@@ -17,5 +18,5 @@ public class Record
 
   public DateTime RecordTimeUtc { get; set; }
 
-  public virtual ICollection<Stat> Stats { get; set; }
+  public virtual Stat Stats { get; set; }
 }
