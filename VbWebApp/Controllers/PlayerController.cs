@@ -52,6 +52,7 @@ public class PlayerController : Controller
       ModelState.AddModelError("PlayerID", "Player ID already exists.");
     }
 
+    ModelState.Remove("PositionOptions"); // PositionOptions is only used to populate
     if (ModelState.IsValid)
     {
       Player player = new Player
