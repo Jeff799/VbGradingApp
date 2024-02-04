@@ -84,6 +84,13 @@ public class PlayerController : Controller
     }
 
     return View(model);
+
+  }
+
+  [HttpGet]
+  public IActionResult Edit()
+  {
+    // hi
   }
 
 }
