@@ -1,0 +1,10 @@
+@model Models.Player
+
+<h2>Confirm Deletion of player</h2>
+<p>@ViewBag.FullName</p>
+
+<form asp-action="ConfirmDelete" method="post">
+  <input type="hidden" name="id" value="@Model.PlayerID" />
+  <button type="submit" class="btn btn-success">Confirm</button>
+  <a asp-action="Index" class="btn btn-danger">Cancel</a>
+</form>

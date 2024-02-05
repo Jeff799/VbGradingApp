@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Data;
 using Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Controllers;
 
@@ -19,10 +20,15 @@ public class PlayerController : Controller
     _logger = logger;
   }
 
-  public async Task<IActionResult> Index()
+  public async Task<IActionResult> Index(int pageNumber = 1)
   {
+    const int pageSize = 4; // 4 players per page
     var players = await _context.Players.ToListAsync();
-    return View(players);
+    var totalPlayers = players.Count;
+    var paging = players.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+    ViewBag.CurrentPage = pageNumber;
+    ViewBag.TotalPages = (int)Math.Ceiling(totalPlayers / (double)pageSize);
+    return View(paging);
   }
 
   [HttpGet]
@@ -87,10 +93,98 @@ public class PlayerController : Controller
 
   }
 
-  [HttpGet]
-  public IActionResult Edit()
+  private List<int> ConvertPositionsToSelectedList(Player.Position positions)
   {
-    // hi
+    var selectedPositions = new List<int>();
+    foreach (var position in Enum.GetValues(typeof(Player.Position)).Cast<Player.Position>())
+    {
+      if (positions.HasFlag(position))
+      {
+        selectedPositions.Add((int)position);
+      }
+    }
+    return selectedPositions;
   }
+
+
+  [HttpGet]
+  public async Task<IActionResult> Edit(int id) // Ensure you're passing the PlayerID as a parameter
+  {
+    var player = await _context.Players.FindAsync(id);
+    if (player == null) return NotFound();
+
+    var model = new PlayerViewModel
+    {
+      PlayerID = player.PlayerID,
+      FirstName = player.FirstName,
+      LastName = player.LastName,
+      Height = player.Height,
+      SelectedPositions = ConvertPositionsToSelectedList(player.Positions),
+      PositionOptions = Enum.GetValues(typeof(Player.Position))
+                              .Cast<Player.Position>()
+                              .Select(p => new SelectListItem { Value = ((int)p).ToString(), Text = p.ToString() })
+    };
+
+    return View(model);
+  }
+
+  [HttpPost]
+  public async Task<IActionResult> Edit(PlayerViewModel model)
+  {
+    ModelState.Remove("PositionOptions");
+    if (!ModelState.IsValid)
+    {
+      // Repopulate PositionOptions if returning to view due to validation failure
+      model.PositionOptions = Enum.GetValues(typeof(Player.Position))
+          .Cast<Player.Position>()
+          .Select(p => new SelectListItem { Value = ((int)p).ToString(), Text = p.ToString() });
+      foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+      {
+        _logger.LogWarning("Validation Error: {ErrorMessage}", error.ErrorMessage);
+      }
+      return View(model);
+    }
+
+    var player = await _context.Players.FindAsync(model.PlayerID);
+    if (player == null) return NotFound();
+
+    player.FirstName = model.FirstName;
+    player.LastName = model.LastName;
+    player.Height = model.Height;
+    player.Positions = (Player.Position)model.SelectedPositions.Aggregate(0, (current, position) => current | position);
+
+    _context.Update(player);
+    await _context.SaveChangesAsync();
+
+    return RedirectToAction(nameof(Index));
+  }
+
+  public async Task<IActionResult> Delete(int id)
+  {
+    var player = await _context.Players.FindAsync(id);
+    if (player == null)
+    {
+      return NotFound();
+    }
+    ViewBag.FullName = player.FullName;
+    return View("ConfirmDelete", player);
+  }
+
+  [HttpPost]
+  public async Task<IActionResult> ConfirmDelete(int id)
+  {
+    var player = await _context.Players.FindAsync(id);
+    if (player == null)
+    {
+      return NotFound();
+    }
+
+    // else
+    _context.Players.Remove(player);
+    await _context.SaveChangesAsync();
+    return RedirectToAction(nameof(Index));
+
+  }
+
 
 }

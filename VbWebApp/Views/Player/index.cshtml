@@ -25,7 +25,10 @@
           <td>@(player.Height + "cm")</td>
           <td>@player.Positions</td>
           <td>
-            <!-- more -->
+            <a asp-controller="Player" asp-action="Edit" asp-route-id="@player.PlayerID" class="btn btn-primary">Edit</a>
+          </td>
+          <td>
+            <a asp-action='Delete' asp-route-id="@player.PlayerID">Delete</a>
           </td>
         </tr>
       }
@@ -34,4 +37,17 @@
   <form asp-controller="Player" asp-action="Add" method="get">
     <button type="submit" class="btn btn-primary">Add new player</button>
   </form>
+
+  @{
+    // Page Controls
+    if (ViewBag.CurrentPage > 1)
+    {
+      <a asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage - 1)">Previous</a>
+    }
+
+    if (ViewBag.CurrentPage < ViewBag.TotalPages)
+    {
+      <a asp-action="Index" asp-route-pageNumber="@(ViewBag.CurrentPage + 1)">Next</a>
+    }
+  }
 </div>
